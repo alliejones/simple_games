@@ -60,26 +60,32 @@ class EventsMethods(EventDispatcher):
             self.game.change_gamestate(GameState.start)
 
     def gamepiece_press(self, instance):
-        if self.game.gamestate == GameState.setup_no_piece:
+        if self.game.gamestate == GameState.setup:
+            self.gamepiece_press_setup(instance)
+        elif self.gamestate == GameState.gameplay:
+            self.gamepiece_press_gameplay(instance)
+
+    def gamepiece_press_setup(self, instance):
+        if self.game.piece_is_selected:
             self.game.place_in_hand(instance)
-            self.game.change_gamestate(GameState.setup_selected_piece)
-        elif self.game.gamestate == GameState.setup_selected_piece:
-            if instance.state == "normal":
-                self.game.clear_hand()
-                self.game.change_gamestate(GameState.setup_no_piece)
-        #nothing for state 2
-        elif self.game.gamestate == GameState.gameplay_no_piece:
-            self.game.place_in_hand(instance)
-            self.game.change_gamestate(GameState.game_selected_piece)
-        elif self.game.gamestate == GameState.game_selected_piece:
+            self.game.piece_is_selected = False
+
+        elif !self.game.piece_is_selected and instance.state == "normal":
+            self.game.clear_hand();
+            self.game.piece_is_selected = True
+
+    def gamepiece_press_gameplay(self, instance):
+        if self.game.piece_is_selected:
             if self.game.piece_belongs_to_activeplayer(instance):
-                self.game.clear_hand()
-                self.game.change_gamestate(GameState.gameplay_no_piece)
+                self.game.piece_is_selected = False
+                self.game.clear_hand();
             else:
-                # not obvious anim_on_complete would be called here!
                 self.game.move_to_square(instance.spot, on_complete=self.anim_on_complete)
+                # do pieces get implicitly unselected when the state changes to conflict?
                 self.game.change_gamestate(GameState.conflict)
-        #nothing for state 5 and 6
+        else:
+            self.game.place_in_hand(instance)
+            self.game.piece_is_selected = True
 
     def piece_placed(self, *args):
         #only relevant in game setup

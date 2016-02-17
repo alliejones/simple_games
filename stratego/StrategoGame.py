@@ -28,6 +28,7 @@ class StrategoGame(FloatLayout):
 
         #gamestatus
         self.activeplayer = self.player1
+        self.piece_is_selected = False
         self.pieceinhand = None
         self.gamestate = GameState.player_setup
 
